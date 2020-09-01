@@ -70,6 +70,8 @@ func (s *TransactionStack) RollBackTransaction() {
 /*Get value of key from Store */
 func Get(key string, ActiveTransaction *TransactionStack) {
 	s := ActiveTransaction.Peek()
+	var node *Transaction
+	var found bool = false
 	if s == nil {
 		if val, ok := GlobalStore[key]; ok {
 		    fmt.Printf("%s\n", val)
@@ -77,9 +79,15 @@ func Get(key string, ActiveTransaction *TransactionStack) {
 			fmt.Printf("%s not set\n", key)
 		}
 	} else {
-		if val, ok := s.store[key]; ok {
-		    fmt.Printf("%s\n", val)
-		} else {
+		node = ActiveTransaction.top
+		for node != nil {
+			if val, ok := node.store[key]; ok {
+			    fmt.Printf("%s\n", val)
+			    found = true
+			}
+			node = node.next
+		}
+		if !found {
 			fmt.Printf("%s not set\n", key)
 		}
 	}
