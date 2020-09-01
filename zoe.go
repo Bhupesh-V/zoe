@@ -142,21 +142,15 @@ func main(){
 		text, _ := reader.ReadString('\n')
 		// split the text into operation strings
 		userAction := strings.Fields(text)
-		if userAction[0] == "BEGIN" {
-			items.PushTransaction()
-		} else if userAction[0] == "ROLLBACK" {
-			items.RollBackTransaction()
-		} else if userAction[0] == "END" {
-			items.PopTransaction()
-		} else if userAction[0] == "SET" {
-			Set(userAction[1], userAction[2], items)
-		} else if userAction[0] == "GET" {
-			Get(userAction[1], items)
-		} else if (userAction[0] == "DELETE") {
-			Delete(userAction[1], items)
-		} else if (userAction[0] == "COUNT") {
-			Count(userAction[1], items)
-		} else {
+		switch userAction[0] {
+		case "BEGIN": 		items.PushTransaction()
+		case "ROLLBACK": 	items.RollBackTransaction()
+		case "END": 		items.PopTransaction()
+		case "SET": 		Set(userAction[1], userAction[2], items)
+		case "GET": 		Get(userAction[1], items)
+		case "DELETE": 		Delete(userAction[1], items)
+		case "COUNT": 		Count(userAction[1], items)
+		default:
 			fmt.Printf("ERROR: Unrecognised Operation %s", userAction[0])
 		}
 	}
