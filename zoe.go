@@ -1,6 +1,5 @@
 /*
-An interactive shell that allows access to a transactional, in-memory 
-key/value store.
+An interactive shell that allows access to a transactional non-persistent in-memory key/value store.
 */
 
 package main
@@ -68,18 +67,18 @@ func (s *TransactionStack) RollBackTransaction() {
 }
 
 /*Get value of key from Store */
-func Get(key string, ActiveTransaction *TransactionStack) {
-	s := ActiveTransaction.Peek()
+func Get(key string, T *TransactionStack) {
+	ActiveTransaction := T.Peek()
 	var node *Transaction
 	var found bool = false
-	if s == nil {
+	if ActiveTransaction == nil {
 		if val, ok := GlobalStore[key]; ok {
 		    fmt.Printf("%s\n", val)
 		} else {
 			fmt.Printf("%s not set\n", key)
 		}
 	} else {
-		node = ActiveTransaction.top
+		node = ActiveTransaction
 		for node != nil {
 			if val, ok := node.store[key]; ok {
 			    fmt.Printf("%s\n", val)
@@ -94,28 +93,28 @@ func Get(key string, ActiveTransaction *TransactionStack) {
 }
 
 /*Set key to value */
-func Set(key string, value string, ActiveTransaction *TransactionStack) {
+func Set(key string, value string, T *TransactionStack) {
 	// Get key:value store from active transaction
-	s := ActiveTransaction.Peek()
-	if s == nil {
+	ActiveTransaction := T.Peek()
+	if ActiveTransaction == nil {
 		GlobalStore[key] = value
 	} else {
-		s.store[key] = value
+		ActiveTransaction.store[key] = value
 	}
 }
 
 /*Count returns the number of keys that have been set to the specified value.*/
-func Count(value string, ActiveTransaction *TransactionStack){
+func Count(value string, T *TransactionStack){
 	var count int = 0
-	s := ActiveTransaction.Peek()
-	if s == nil {
+	ActiveTransaction := T.Peek()
+	if ActiveTransaction == nil {
 		for _, v := range GlobalStore {
 			if v == value {
 				count++
 			}
 		}
 	} else {
-		for _, v := range s.store {
+		for _, v := range ActiveTransaction.store {
 			if v == value {
 				count++
 			}
@@ -125,12 +124,12 @@ func Count(value string, ActiveTransaction *TransactionStack){
 }
 
 /*Delete value from Store */
-func Delete(key string, ActiveTransaction *TransactionStack) {
-	s := ActiveTransaction.Peek()
-	if s == nil {
+func Delete(key string, T *TransactionStack) {
+	ActiveTransaction := T.Peek()
+	if ActiveTransaction == nil {
 		delete(GlobalStore, key)
 	} else {
-		delete(s.store, key)
+		delete(ActiveTransaction.store, key)
 	}
 	fmt.Printf("%s deleted", key)
 }
