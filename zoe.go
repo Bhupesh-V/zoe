@@ -41,7 +41,8 @@ func (s *TransactionStack) PushTransaction() {
 func (s *TransactionStack) PopTransaction() {
 	// Pop the Transaction from stack, no longer active
 	if s.top == nil {
-		panic(errors.New("stack underflow"))
+		// basically stack underflow
+		panic(errors.New("No Active Transactions"))
 	} else {
 		node := &Transaction{}
 		s.top = s.top.next
@@ -55,21 +56,17 @@ func (s *TransactionStack) Peek() *Transaction {
 	return s.top
 }
 
-/*func (s *TransactionStack) Display() {
-	fmt.Println("---Transaction Stack---")
-	var node *Transaction
+/*RollBackTransaction removes all keys SET within a transaction*/
+func (s *TransactionStack) RollBackTransaction() {
 	if s.top == nil {
-		panic(errors.New("Stack Underflow !!"))
+		panic(errors.New("No Active Transaction"))
 	} else {
-		fmt.Printf("top ->")
-		node = s.top
-		for node != nil {
-			fmt.Printf("\t%v\n", node.value)
-			node = node.next
+		for key := range s.top.store {
+			delete(s.top.store, key)
 		}
 	}
 }
-*/
+
 /*Get value of key from Store */
 func Get(key string, ActiveTransaction *TransactionStack) {
 	s := ActiveTransaction.Peek()
@@ -100,13 +97,20 @@ func Set(key string, value string, ActiveTransaction *TransactionStack) {
 }
 
 /*Count returns the number of keys that have been set to the specified value.*/
-func Count(value string){
+func Count(value string, ActiveTransaction *TransactionStack){
 	var count int = 0
-	ActiveTransaction := &TransactionStack{}
 	s := ActiveTransaction.Peek()
-	for _, v := range s.store {
-		if v == value {
-			count++
+	if s == nil {
+		for _, v := range GlobalStore {
+			if v == value {
+				count++
+			}
+		}
+	} else {
+		for _, v := range s.store {
+			if v == value {
+				count++
+			}
 		}
 	}
 	fmt.Printf("%d\n", count)
@@ -133,6 +137,8 @@ func main(){
 		userAction := strings.Fields(text)
 		if userAction[0] == "BEGIN" {
 			items.PushTransaction()
+		} else if userAction[0] == "ROLLBACK" {
+			items.RollBackTransaction()
 		} else if userAction[0] == "END" {
 			items.PopTransaction()
 		} else if userAction[0] == "SET" {
@@ -142,7 +148,7 @@ func main(){
 		} else if (userAction[0] == "DELETE") {
 			Delete(userAction[1], items)
 		} else if (userAction[0] == "COUNT") {
-			Count(userAction[1])
+			Count(userAction[1], items)
 		} else {
 			fmt.Printf("ERROR: Unrecognised Operation %s", userAction[0])
 		}
