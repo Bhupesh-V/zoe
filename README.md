@@ -10,5 +10,5 @@ The shell accepts the following commands:
 - `COUNT [value]`: Returns the number of keys that have been set to the specified value. If no keys have been set to that value, prints 0.
 - `BEGIN`: Starts a transaction. These transactions allow you to modify the state of the system and commit or rollback your changes.
 - `END`: Ends a transaction, everything done within the "active" transaction is lost.
-- `ROLLBACK`: Throws away changes made within the context of the active transaction and ends the active transaction. If no transaction is active, prints NO TRANSACTION
-<!-- - `COMMIT`: Commits the changes made within the context of the active transaction and ends the active transaction.-->
+- `ROLLBACK`: Throws away changes made within the context of the active transaction. If no transaction is active, prints NO TRANSACTION
+`COMMIT`: Commits the changes made within the context of the active transaction and ends the active transaction.
