@@ -1,5 +1,5 @@
 /*
-An interactive shell that allows access to a transactional non-persistent in-memory key/value store.
+Zoe is an interactive shell that allows access to a transactional non-persistent in-memory key/value store.
 */
 
 package main
@@ -7,12 +7,11 @@ package main
 import (
 	"fmt"
 	"os"
-//	"errors"
 	"bufio"
 	"strings"
 )
 
-/*GlobalStore hold the global transaction operations */
+/*GlobalStore holds the (global) variables*/
 var GlobalStore = make(map[string]string)
 
 /*Map string:string*/
@@ -20,15 +19,14 @@ type Map = map[string]string
 
 /*Transaction points to a key:value store*/
 type Transaction struct {
-	store Map
+	store Map 			// every transaction has its own local store
 	next  *Transaction
 }
 
 /*TransactionStack is maintained as a list of active/suspended transactions */
 type TransactionStack struct {
-	stackStore Map
 	top  *Transaction
-	size int // more meta data can be saved like Stack limit etc.
+	size int 			// more meta data can be saved like Stack limit etc.
 }
 
 /*PushTransaction creates new active transaction*/
@@ -54,7 +52,7 @@ func (ts *TransactionStack) PopTransaction() {
 	}
 }
 
-/*Peek active transaction*/
+/*Peek returns active transaction*/
 func (ts *TransactionStack) Peek() *Transaction {
 	return ts.top
 }
@@ -64,6 +62,7 @@ func (ts *TransactionStack) RollBackTransaction() {
 	if ts.top == nil {
 		fmt.Printf("ERROR: No Active Transaction\n")
 	} else {
+		// this is optimized by the Go1.11 compiler :o
 		for key := range ts.top.store {
 			delete(ts.top.store, key)
 		}
@@ -77,7 +76,7 @@ func (ts *TransactionStack) Commit() {
 	ActiveTransaction := ts.Peek()
 	if ActiveTransaction != nil {
 		for key, value := range ActiveTransaction.store {
-			ts.stackStore[key] = value
+			GlobalStore[key] = value
 			if ActiveTransaction.next != nil {
 				// update the parent transaction
 				ActiveTransaction.next.store[key] = value
@@ -92,7 +91,6 @@ func (ts *TransactionStack) Commit() {
 func Get(key string, T *TransactionStack) {
 	ActiveTransaction := T.Peek()
 	var node *Transaction
-	//var found bool = false
 	if ActiveTransaction == nil {
 		if val, ok := GlobalStore[key]; ok {
 		    fmt.Printf("%s\n", val)
@@ -101,18 +99,11 @@ func Get(key string, T *TransactionStack) {
 		}
 	} else {
 		node = ActiveTransaction
-//		for node != nil {
 		if val, ok := node.store[key]; ok {
 		    fmt.Printf("%s\n", val)
-		    // found = true
 		} else {
 			fmt.Printf("%s not set\n", key)
 		}
-//			node = node.next
-//		}
-/*		if !found {
-			fmt.Printf("%s not set\n", key)
-		}*/
 	}
 }
 
@@ -160,24 +151,24 @@ func Delete(key string, T *TransactionStack) {
 
 func main(){
 	reader := bufio.NewReader(os.Stdin)
-	items := &TransactionStack{stackStore: make(Map)}
+	items := &TransactionStack{}
 	for {
 		fmt.Printf("> ")
 		text, _ := reader.ReadString('\n')
 		// split the text into operation strings
-		userAction := strings.Fields(text)
-		switch userAction[0] {
+		operation := strings.Fields(text)
+		switch operation[0] {
 		case "BEGIN": 		items.PushTransaction()
 		case "ROLLBACK": 	items.RollBackTransaction()
 		case "COMMIT": 		items.Commit(); items.PopTransaction()
 		case "END": 		items.PopTransaction()
-		case "SET": 		Set(userAction[1], userAction[2], items)
-		case "GET": 		Get(userAction[1], items)
-		case "DELETE": 		Delete(userAction[1], items)
-		case "COUNT": 		Count(userAction[1], items)
+		case "SET": 		Set(operation[1], operation[2], items)
+		case "GET": 		Get(operation[1], items)
+		case "DELETE": 		Delete(operation[1], items)
+		case "COUNT": 		Count(operation[1], items)
 		case "STOP": 		os.Exit(0)
 		default:
-			fmt.Printf("ERROR: Unrecognised Operation %s\n", userAction[0])
+			fmt.Printf("ERROR: Unrecognised Operation %s\n", operation[0])
 		}
 	}
 }
