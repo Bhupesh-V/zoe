@@ -29,7 +29,7 @@ type TransactionStack struct {
 	size int 			// more meta data can be saved like Stack limit etc.
 }
 
-/*PushTransaction creates new active transaction*/
+/*PushTransaction creates a new active transaction*/
 func (ts *TransactionStack) PushTransaction() {
 	// Push a new Transaction, this is the current active transaction
 	temp := Transaction{store : make(Map)}
@@ -38,7 +38,7 @@ func (ts *TransactionStack) PushTransaction() {
 	ts.size++
 }
 
-/*PopTransaction creates delete a transaction*/
+/*PopTransaction deletes a transaction from stack*/
 func (ts *TransactionStack) PopTransaction() {
 	// Pop the Transaction from stack, no longer active
 	if ts.top == nil {
@@ -52,7 +52,7 @@ func (ts *TransactionStack) PopTransaction() {
 	}
 }
 
-/*Peek returns active transaction*/
+/*Peek returns the active transaction*/
 func (ts *TransactionStack) Peek() *Transaction {
 	return ts.top
 }
@@ -87,10 +87,9 @@ func (ts *TransactionStack) Commit() {
 	}
 }
 
-/*Get value of key from Store (WIP)*/
+/*Get value of key from Store*/
 func Get(key string, T *TransactionStack) {
 	ActiveTransaction := T.Peek()
-	var node *Transaction
 	if ActiveTransaction == nil {
 		if val, ok := GlobalStore[key]; ok {
 		    fmt.Printf("%s\n", val)
@@ -98,8 +97,7 @@ func Get(key string, T *TransactionStack) {
 			fmt.Printf("%s not set\n", key)
 		}
 	} else {
-		node = ActiveTransaction
-		if val, ok := node.store[key]; ok {
+		if val, ok := ActiveTransaction.store[key]; ok {
 		    fmt.Printf("%s\n", val)
 		} else {
 			fmt.Printf("%s not set\n", key)
