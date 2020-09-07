@@ -1,6 +1,10 @@
 # zoe
 
-> A simple transactional key:value store for learning purposes
+> A simple transactional key:value store for educational purposes
+
+
+<!-- ### [Learn how I made `zoe` from scratch]() -->
+
 
 The shell accepts the following commands:
 
@@ -14,6 +18,14 @@ The shell accepts the following commands:
 |    `END`   | Ends a transaction, everything done within the "active" transaction is lost.                                                       |
 | `ROLLBACK` | Throws away changes made within the context of the active transaction. If no transaction is active, prints "No Active Transaction" |
 |  `COMMIT`  | Commits the changes made within the context of the active transaction and ends the active transaction.                             |
+
+## Demo
+
+![zoe-demo-3](https://user-images.githubusercontent.com/34342551/92362469-aa2a7700-f10d-11ea-8426-1e8462b66d18.gif)
+
+## Usage
+
+If you just wanna play, ⬇ Download the build from [releases](https://github.com/Bhupesh-V/zoe/releases)
 
 ## License
 
