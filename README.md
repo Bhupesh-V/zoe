@@ -3,7 +3,9 @@
 > A simple transactional key:value store for educational purposes
 
 
-<!-- ### [Learn how I made `zoe` from scratch]() -->
+
+### [🖱️ Learn how I made `zoe` from scratch](https://www.freecodecamp.org/news/design-a-key-value-store-in-go/)
+
 
 
 The shell accepts the following commands:
