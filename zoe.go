@@ -5,9 +5,9 @@ Zoe is an interactive shell that allows access to a transactional non-persistent
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
 	"strings"
 )
 
@@ -19,20 +19,20 @@ type Map = map[string]string
 
 /*Transaction points to a key:value store*/
 type Transaction struct {
-	store Map 			// every transaction has its own local store
+	store Map // every transaction has its own local store
 	next  *Transaction
 }
 
 /*TransactionStack is maintained as a list of active/suspended transactions */
 type TransactionStack struct {
 	top  *Transaction
-	size int 			// more meta data can be saved like Stack limit etc.
+	size int // more meta data can be saved like Stack limit etc.
 }
 
 /*PushTransaction creates a new active transaction*/
 func (ts *TransactionStack) PushTransaction() {
 	// Push a new Transaction, this is the current active transaction
-	temp := Transaction{store : make(Map)}
+	temp := Transaction{store: make(Map)}
 	temp.next = ts.top
 	ts.top = &temp
 	ts.size++
@@ -43,11 +43,9 @@ func (ts *TransactionStack) PopTransaction() {
 	// Pop the Transaction from stack, no longer active
 	if ts.top == nil {
 		// basically stack underflow
-		fmt.Printf("ERROR: No Active Transactions\n")
+		fmt.Println("ERROR: No Active Transactions")
 	} else {
-		node := &Transaction{}
 		ts.top = ts.top.next
-		node.next = nil
 		ts.size--
 	}
 }
@@ -60,7 +58,7 @@ func (ts *TransactionStack) Peek() *Transaction {
 /*RollBackTransaction clears all keys SET within a transaction*/
 func (ts *TransactionStack) RollBackTransaction() {
 	if ts.top == nil {
-		fmt.Printf("ERROR: No Active Transaction\n")
+		fmt.Println("ERROR: No Active Transaction")
 	} else {
 		// this is optimized by the Go1.11 compiler :o
 		for key := range ts.top.store {
@@ -83,7 +81,7 @@ func (ts *TransactionStack) Commit() {
 			}
 		}
 	} else {
-		fmt.Printf("INFO: Nothing to commit\n")
+		fmt.Println("INFO: Nothing to commit")
 	}
 }
 
@@ -92,15 +90,15 @@ func Get(key string, T *TransactionStack) {
 	ActiveTransaction := T.Peek()
 	if ActiveTransaction == nil {
 		if val, ok := GlobalStore[key]; ok {
-		    fmt.Printf("%s\n", val)
+			fmt.Println(val)
 		} else {
-			fmt.Printf("%s not set\n", key)
+			fmt.Println(key, "not set")
 		}
 	} else {
 		if val, ok := ActiveTransaction.store[key]; ok {
-		    fmt.Printf("%s\n", val)
+			fmt.Println(val)
 		} else {
-			fmt.Printf("%s not set\n", key)
+			fmt.Println(key, "not set")
 		}
 	}
 }
@@ -117,7 +115,7 @@ func Set(key string, value string, T *TransactionStack) {
 }
 
 /*Count returns the number of keys that have been set to the specified value.*/
-func Count(value string, T *TransactionStack){
+func Count(value string, T *TransactionStack) {
 	var count int = 0
 	ActiveTransaction := T.Peek()
 	if ActiveTransaction == nil {
@@ -133,7 +131,7 @@ func Count(value string, T *TransactionStack){
 			}
 		}
 	}
-	fmt.Printf("%d\n", count)
+	fmt.Println(count)
 }
 
 /*Delete value from Store */
@@ -144,29 +142,39 @@ func Delete(key string, T *TransactionStack) {
 	} else {
 		delete(ActiveTransaction.store, key)
 	}
-	fmt.Printf("%s deleted\n", key)
+	fmt.Println(key, "deleted")
 }
 
-func main(){
+func main() {
 	reader := bufio.NewReader(os.Stdin)
 	items := &TransactionStack{}
 	for {
-		fmt.Printf("> ")
+		fmt.Print("> ")
 		text, _ := reader.ReadString('\n')
 		// split the text into operation strings
 		operation := strings.Fields(text)
 		switch operation[0] {
-		case "BEGIN": 		items.PushTransaction()
-		case "ROLLBACK": 	items.RollBackTransaction()
-		case "COMMIT": 		items.Commit(); items.PopTransaction()
-		case "END": 		items.PopTransaction()
-		case "SET": 		Set(operation[1], operation[2], items)
-		case "GET": 		Get(operation[1], items)
-		case "DELETE": 		Delete(operation[1], items)
-		case "COUNT": 		Count(operation[1], items)
-		case "STOP": 		os.Exit(0)
+		case "BEGIN":
+			items.PushTransaction()
+		case "ROLLBACK":
+			items.RollBackTransaction()
+		case "COMMIT":
+			items.Commit()
+			items.PopTransaction()
+		case "END":
+			items.PopTransaction()
+		case "SET":
+			Set(operation[1], operation[2], items)
+		case "GET":
+			Get(operation[1], items)
+		case "DELETE":
+			Delete(operation[1], items)
+		case "COUNT":
+			Count(operation[1], items)
+		case "STOP":
+			os.Exit(0)
 		default:
-			fmt.Printf("ERROR: Unrecognised Operation %s\n", operation[0])
+			fmt.Println("ERROR: Unrecognised Operation", operation[0])
 		}
 	}
 }
