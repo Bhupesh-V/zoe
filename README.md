@@ -1,6 +1,6 @@
 # zoe
 
-> A simple transactional key:value store for educational purposes
+> A simple transactional key:value store for educational purposes (with support for Transactions)
 
 
 
